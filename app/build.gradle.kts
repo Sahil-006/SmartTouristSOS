@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.android.libraries.mapsplatform.secrets.gradle.plugin)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -10,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.smarttouristsos"
-        minSdk = 21
+        minSdk = 23
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -35,7 +37,11 @@ android {
         jvmTarget = "11"
     }
     buildFeatures {
+        buildConfig = true
+    }
+    buildFeatures {
         compose = true
+        viewBinding = true
     }
 }
 
@@ -51,7 +57,11 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.12.0")
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
     implementation(libs.androidx.compose.material3)
+    implementation(libs.play.services.maps)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.activity)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -59,4 +69,10 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    // Firebase Bill of Materials (manages library versions for you)
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+    // Firebase Authentication library
+    implementation("com.google.firebase:firebase-auth-ktx")
+    // Cloud Firestore database library
+    implementation("com.google.firebase:firebase-firestore-ktx")
 }

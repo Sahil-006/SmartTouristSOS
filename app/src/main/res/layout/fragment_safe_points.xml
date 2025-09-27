@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".SafePointsFragment">
+
+    <TextView
+        android:id="@+id/tvSafePointsTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="AR Safe Point Finder"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_centerHorizontal="true"/>
+
+    <TextView
+        android:id="@+id/tvSafePointsDesc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvSafePointsTitle"
+        android:layout_marginTop="16dp"
+        android:text="Feeling lost or unsafe? Use your camera to get augmented reality directions to the nearest verified safe point, such as a police station, hospital, or registered hotel."
+        android:textAlignment="center"
+        android:textSize="16sp"/>
+
+    <Button
+        android:id="@+id/btnActivateAR"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Activate AR Finder"
+        android:layout_centerInParent="true"
+        android:padding="16dp"
+        android:textSize="18sp"/>
+
+</RelativeLayout>
