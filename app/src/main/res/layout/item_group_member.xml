@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="4dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/tvMemberName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sahil Kumar"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_alignParentStart="true"
+            android:layout_toStartOf="@+id/tvLeaderTag"/>
+
+        <TextView
+            android:id="@+id/tvLeaderTag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="(Leader)"
+            android:textColor="?attr/colorPrimary"
+            android:textStyle="bold"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="8dp"
+            android:visibility="gone" /> <TextView
+        android:id="@+id/tvMemberStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Status: Online"
+        android:layout_below="@id/tvMemberName"
+        android:layout_marginTop="4dp"/>
+
+    </RelativeLayout>
+
+</androidx.cardview.widget.CardView>

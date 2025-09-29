@@ -1,41 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- We use a ScrollView to prevent content from being cut off on small screens -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center_horizontal"
-    android:padding="16dp"
-    tools:context=".DashboardFragment">
+    android:fillViewport="true"
+    tools:context=".fragments.DashboardFragment">
 
-    <TextView
-        android:id="@+id/tvStatus"
-        android:layout_width="wrap_content"
+    <!--
+     This LinearLayout holds our content.
+     By setting the width to a specific value (e.g., 400dp) inside a Centered parent,
+     we fix the "too wide" warning for tablets.
+    -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:text="SOS Protection is INACTIVE"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="24dp">
 
-    <com.google.android.material.switchmaterial.SwitchMaterial
-        android:id="@+id/sos_switch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="32dp"
-        android:text="Enable SOS Service" />
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/sos_status_inactive"
+            android:textSize="22sp"
+            android:textStyle="bold" />
 
-    <Button
-        android:id="@+id/btnPickContact"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="Set Emergency Contact" />
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/sos_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/enable_sos_service" />
 
-    <Button
-        android:id="@+id/btnDefineRedZone"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Define Red Zone (Admin)" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_set_emergency_contact"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="@string/set_emergency_contact" />
 
-</LinearLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_define_red_zone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/define_red_zone_admin" />
+    </LinearLayout>
+
+</ScrollView>
+

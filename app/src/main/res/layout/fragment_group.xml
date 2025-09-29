@@ -4,12 +4,24 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".GroupFragment">
+    tools:context=".fragments.GroupFragment">
+
+    <TextView
+        android:id="@+id/tvGroupName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:text="Group Name"
+        android:textSize="24sp"
+        android:textStyle="bold" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvGroupMembers"
+        android:id="@+id/groupsRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@id/tvGroupName"
+        android:layout_marginTop="8dp"
         android:padding="8dp" />
 
     <TextView
@@ -17,9 +29,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:text="You are not in a group. Create or join one!"
+        android:text="You are not in a group. Tap '+' to create or join one."
         android:textSize="16sp"
-        android:visibility="gone" /> <!-- Hidden by default -->
+        android:visibility="gone" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddGroup"
@@ -28,8 +40,8 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_margin="16dp"
-        android:src="@android:drawable/ic_input_add"
-        app:tint="@android:color/white"
-        android:contentDescription="Create or Join Group" />
+        android:contentDescription="Create or Join Group"
+        android:src="@drawable/ic_add"
+        app:tint="@android:color/white" />
 
 </RelativeLayout>

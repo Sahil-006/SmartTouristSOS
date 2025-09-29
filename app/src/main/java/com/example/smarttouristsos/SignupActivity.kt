@@ -51,46 +51,69 @@ class SignupActivity : AppCompatActivity() {
             progressBar.visibility = View.VISIBLE
             btnSignup.isEnabled = false
 
-            auth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this) { task ->
-                    progressBar.visibility = View.GONE
-                    btnSignup.isEnabled = true
-
+            // --- THIS IS THE NEW LOGIC ---
+            // Step 1: Check if the username is already taken in the database
+            db.collection("users").whereEqualTo("username", username).get()
+                .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
-                        val userId = auth.currentUser?.uid ?: ""
-                        val user = hashMapOf(
-                            "name" to name,
-                            "username" to username,
-                            "email" to email,
-                            "aadhaar" to aadhaar,
-                            "tripDuration" to tripDuration
-                        )
-
-                        db.collection("users").document(userId)
-                            .set(user)
-                            .addOnSuccessListener {
-                                Toast.makeText(this, "Welcome to Smart Tourist SOS!", Toast.LENGTH_SHORT).show()
-                                // --- THIS IS THE CHANGED PART ---
-                                // Redirect directly to the main dashboard
-                                val intent = Intent(this, MainActivity::class.java)
-                                // Clear the back stack so the user can't go back to the login/signup screens
-                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                                startActivity(intent)
-                                finish() // Close the signup activity
-                                // --- END OF CHANGE ---
-                            }
-                            .addOnFailureListener { e ->
-                                Toast.makeText(this, "Error saving user data: ${e.message}", Toast.LENGTH_LONG).show()
-                            }
+                        if (task.result != null && !task.result.isEmpty) {
+                            // Username already exists
+                            progressBar.visibility = View.GONE
+                            btnSignup.isEnabled = true
+                            Toast.makeText(this, "Username already exists. Please choose another.", Toast.LENGTH_LONG).show()
+                        } else {
+                            // Username is unique, proceed with account creation
+                            // Step 2: If unique, create the user with email and password
+                            createUserAccount(name, username, email, password, aadhaar, tripDuration, progressBar, btnSignup)
+                        }
                     } else {
-                        Toast.makeText(this, "Authentication failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                        // Handle error during the check
+                        progressBar.visibility = View.GONE
+                        btnSignup.isEnabled = true
+                        Toast.makeText(this, "Error checking username: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                     }
                 }
+            // --- END OF NEW LOGIC ---
         }
 
         tvGoToLogin.setOnClickListener {
-            finish() // Just close this screen to go back to the login screen
+            finish()
         }
+    }
+
+    private fun createUserAccount(name: String, username: String, email: String, password: String, aadhaar: String, tripDuration: String, progressBar: ProgressBar, btnSignup: Button) {
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    val userId = auth.currentUser?.uid ?: ""
+                    val user = hashMapOf(
+                        "name" to name,
+                        "username" to username,
+                        "email" to email,
+                        "aadhaar" to aadhaar,
+                        "tripDuration" to tripDuration
+                    )
+
+                    db.collection("users").document(userId)
+                        .set(user)
+                        .addOnSuccessListener {
+                            Toast.makeText(this, "Welcome to Smart Tourist SOS!", Toast.LENGTH_SHORT).show()
+                            val intent = Intent(this, MainActivity::class.java)
+                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            startActivity(intent)
+                            finish()
+                        }
+                        .addOnFailureListener { e ->
+                            progressBar.visibility = View.GONE
+                            btnSignup.isEnabled = true
+                            Toast.makeText(this, "Error saving user data: ${e.message}", Toast.LENGTH_LONG).show()
+                        }
+                } else {
+                    progressBar.visibility = View.GONE
+                    btnSignup.isEnabled = true
+                    Toast.makeText(this, "Authentication failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                }
+            }
     }
 }
 

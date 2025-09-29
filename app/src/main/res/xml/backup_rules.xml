@@ -1,13 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Sample backup rules file; uncomment and customize as necessary.
-   See https://developer.android.com/guide/topics/data/autobackup
-   for details.
-   Note: This file is ignored for devices older than API 31
-   See https://developer.android.com/about/versions/12/backup-restore
--->
+<?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
     <!--
-   <include domain="sharedpref" path="."/>
-   <exclude domain="sharedpref" path="device.xml"/>
--->
+    This file is used to specify which files to include or exclude from Auto Backup.
+    By default, most of your app's data is automatically backed up.
+    You can use <include> and <exclude> tags here to customize what gets backed up.
+    For example:
+    <exclude domain="database" path="my_temp_db.db"/>
+    <include domain="sharedpref" path="user_settings.xml"/>
+    For most apps, leaving this file with just the root tag is perfectly fine.
+    -->
 </full-backup-content>

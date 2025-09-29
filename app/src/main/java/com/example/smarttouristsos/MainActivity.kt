@@ -3,7 +3,10 @@ package com.example.smarttouristsos
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.example.smarttouristsos.fragments.DashboardFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.example.smarttouristsos.fragments.GroupFragment
+import com.example.smarttouristsos.fragments.SafePointsFragment
 
 class MainActivity : AppCompatActivity() {
 

@@ -1,4 +1,4 @@
-package com.example.smarttouristsos
+package com.example.smarttouristsos.fragments
 
 import android.Manifest
 import android.app.Activity
@@ -12,23 +12,29 @@ import android.provider.ContactsContract
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.fragment.app.Fragment
+import com.example.smarttouristsos.EmergencyService
+import com.example.smarttouristsos.MapActivity
+import com.example.smarttouristsos.R
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.switchmaterial.SwitchMaterial
 
 class DashboardFragment : Fragment() {
 
-    // --- All our permission and activity launchers from MainActivity are moved here ---
+    // --- NEW: Define a constant for our SharedPreferences file and key ---
+    private val PREFS_NAME = "SOS_App_Prefs"
+    private val SOS_SERVICE_ACTIVE_KEY = "sos_service_active"
+
+    // Permission and activity launchers (unchanged)
     private val pickContactLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val contactUri: Uri? = result.data?.data
             val projection = arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER)
-
             contactUri?.let {
                 requireActivity().contentResolver.query(it, projection, null, null, null)?.use { cursor ->
                     if (cursor.moveToFirst()) {
@@ -40,40 +46,28 @@ class DashboardFragment : Fragment() {
             }
         }
     }
+    private val requestContactsPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted -> if (isGranted) launchContactPicker() else showToast("Permission to read contacts is required.") }
+    private val requestNotificationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted -> if (isGranted) checkForegroundServicePermission() else showToast("Notification permission is required.") }
+    private val requestForegroundServicePermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted -> if (isGranted) checkLocationPermission() else showToast("Foreground Service permission is required.") }
+    private val requestLocationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted -> if (isGranted) checkSmsPermission() else showToast("Location permission is required.") }
+    private val requestSmsPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted -> if (isGranted) startSosService() else showToast("SMS permission is required.") }
 
-    private val requestContactsPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-        if (isGranted) launchContactPicker() else showToast("Permission to read contacts is required.")
-    }
-
-    private val requestNotificationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-        if (isGranted) checkLocationPermission() else showToast("Notification permission is required.")
-    }
-
-    private val requestLocationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-        if (isGranted) checkSmsPermission() else showToast("Location permission is required.")
-    }
-
-    private val requestSmsPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-        if (isGranted) startSosService() else showToast("SMS permission is required.")
-    }
-
-    // --- onCreateView is where the layout is inflated ---
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_dashboard, container, false)
     }
 
-    // --- onViewCreated is where we add all our logic ---
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Find all the UI elements from our new layout
         val sosSwitch: SwitchMaterial = view.findViewById(R.id.sos_switch)
         val tvStatus: TextView = view.findViewById(R.id.tvStatus)
-        val btnPickContact: Button = view.findViewById(R.id.btnPickContact)
-        val btnDefineRedZone: Button = view.findViewById(R.id.btnDefineRedZone)
+        val btnPickContact: MaterialButton = view.findViewById(R.id.btn_set_emergency_contact)
+        val btnDefineRedZone: MaterialButton = view.findViewById(R.id.btn_define_red_zone)
 
-        // --- All our button logic is moved here ---
+        // --- MODIFIED: Restore the switch state when the view is created ---
+        updateUiFromSavedState(sosSwitch, tvStatus)
+
+        // Set click listeners
         btnPickContact.setOnClickListener {
             when {
                 ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED -> launchContactPicker()
@@ -82,31 +76,48 @@ class DashboardFragment : Fragment() {
         }
 
         btnDefineRedZone.setOnClickListener {
-            val intent = Intent(requireActivity(), MapActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(requireActivity(), MapActivity::class.java))
         }
 
         sosSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                tvStatus.text = "SOS Protection is ACTIVE"
-                // Start the full permission chain before enabling the service
+                // The permission chain will now only start when the user manually toggles the switch
                 checkNotificationPermission()
             } else {
-                tvStatus.text = "SOS Protection is INACTIVE"
                 stopSosService()
             }
         }
     }
 
-    // --- All our helper functions are moved here ---
+    // --- NEW FUNCTION: To read SharedPreferences and update the UI ---
+    private fun updateUiFromSavedState(sosSwitch: SwitchMaterial, tvStatus: TextView) {
+        val sharedPref = requireActivity().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val isServiceActive = sharedPref.getBoolean(SOS_SERVICE_ACTIVE_KEY, false)
+
+        // Set the switch's state without triggering the setOnCheckedChangeListener
+        sosSwitch.isChecked = isServiceActive
+        if (isServiceActive) {
+            tvStatus.text = getString(R.string.sos_status_active)
+        } else {
+            tvStatus.text = getString(R.string.sos_status_inactive)
+        }
+    }
+
     private fun checkNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             when {
-                ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED -> checkLocationPermission()
+                ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED -> checkForegroundServicePermission()
                 else -> requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         } else {
-            checkLocationPermission()
+            checkForegroundServicePermission()
+        }
+    }
+
+    private fun checkForegroundServicePermission() {
+        when {
+            ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.FOREGROUND_SERVICE) == PackageManager.PERMISSION_GRANTED -> checkLocationPermission()
+            else -> requestForegroundServicePermissionLauncher.launch(Manifest.permission.FOREGROUND_SERVICE)
         }
     }
 
@@ -132,12 +143,26 @@ class DashboardFragment : Fragment() {
             requireActivity().startService(intent)
         }
         showToast("SOS Service Enabled")
+        // --- NEW: Save the active state ---
+        saveServiceState(true)
     }
 
     private fun stopSosService() {
         val intent = Intent(requireActivity(), EmergencyService::class.java)
         requireActivity().stopService(intent)
         showToast("SOS Service Disabled")
+        // --- NEW: Save the inactive state ---
+        saveServiceState(false)
+        // We also need to manually update the UI text here, as the listener is what calls this function.
+        view?.findViewById<TextView>(R.id.tvStatus)?.text = getString(R.string.sos_status_inactive)
+    }
+
+    // --- NEW FUNCTION: To save the service state to SharedPreferences ---
+    private fun saveServiceState(isActive: Boolean) {
+        val sharedPref = requireActivity().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        sharedPref.edit {
+            putBoolean(SOS_SERVICE_ACTIVE_KEY, isActive)
+        }
     }
 
     private fun launchContactPicker() {
@@ -146,10 +171,9 @@ class DashboardFragment : Fragment() {
     }
 
     private fun saveEmergencyContact(number: String) {
-        val sharedPref = requireActivity().getSharedPreferences("SOS_App_Prefs", Context.MODE_PRIVATE)
-        with(sharedPref.edit()) {
+        val sharedPref = requireActivity().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        sharedPref.edit {
             putString("emergency_contact_number", number)
-            apply()
         }
         showToast("Emergency Contact Saved: $number")
     }
@@ -158,3 +182,4 @@ class DashboardFragment : Fragment() {
         Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
     }
 }
+
